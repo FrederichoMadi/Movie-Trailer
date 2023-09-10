@@ -1,0 +1,4 @@
+package com.fredericho.movies.util
+
+const val TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZmNlZjk5ZDdjNzU3ZGZlNjMwOTk0NDY1OGQ4ODdhOCIsInN1YiI6IjYwOGZhYjMzYTA5N2RjMDAzZjk0YTY3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.NaOTQA_YvOrE02OkYiVYbE35pYWdXZ9BKjcbd77_hSE"
+const val IMAGE_URL = "https://image.tmdb.org/t/p/w500"
