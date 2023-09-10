@@ -1,10 +1,10 @@
 package com.fredericho.movies.ui.features.detail
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fredericho.movies.core.movie.api.model.Credit
 import com.fredericho.movies.core.movie.api.model.DetailMovie
+import com.fredericho.movies.core.movie.api.model.Review
 import com.fredericho.movies.core.movie.api.model.VideoMovie
 import com.fredericho.movies.core.movie.api.repository.MovieRepository
 import com.fredericho.movies.util.BaseResponse
@@ -28,6 +28,9 @@ class DetailMovieViewModel @Inject constructor(
 
     private val _videoState = MutableStateFlow(VideosMovieUiState())
     val videoState = _videoState.asStateFlow()
+
+    private val _reviewState = MutableStateFlow(ReviewMovieUiState())
+    val reviewState = _reviewState.asStateFlow()
 
     fun getDetailMovie(movieId : Int) = viewModelScope.launch {
         _detailState.update {
@@ -124,8 +127,39 @@ class DetailMovieViewModel @Inject constructor(
             }
         }
     }
+
+    fun getReviewMovie(movieId: Int) = viewModelScope.launch {
+        _reviewState.update {
+            it.copy(loading = true)
+        }
+
+        when(val apiResult = movieRepository.getReviewMovie(movieId)) {
+            is BaseResponse.Success -> {
+                _reviewState.update {
+                    it.copy(
+                        reviews = apiResult.data,
+                        loading = false,
+                    )
+                }
+            }
+            is BaseResponse.Error -> {
+                _reviewState.update {
+                    it.copy(
+                        messageError = apiResult.message,
+                        loading = false,
+                    )
+                }
+            }
+            else -> {}
+        }
+    }
 }
 
+data class ReviewMovieUiState(
+    val reviews : List<Review> = emptyList(),
+    val loading : Boolean = true,
+    val messageError : String = "",
+)
 data class DetailMovieUiState(
     val movie : DetailMovie = DetailMovie(),
     val loading : Boolean = true,

@@ -1,5 +1,6 @@
 package com.fredericho.movies.core.movie.implementation.mapper
 
+import com.fredericho.movies.core.movie.api.model.Author
 import com.fredericho.movies.core.movie.api.model.BelongsToCollection
 import com.fredericho.movies.core.movie.api.model.Cast
 import com.fredericho.movies.core.movie.api.model.Credit
@@ -9,8 +10,10 @@ import com.fredericho.movies.core.movie.api.model.GenresItem
 import com.fredericho.movies.core.movie.api.model.Movie
 import com.fredericho.movies.core.movie.api.model.ProductionCompaniesItem
 import com.fredericho.movies.core.movie.api.model.ProductionCountriesItem
+import com.fredericho.movies.core.movie.api.model.Review
 import com.fredericho.movies.core.movie.api.model.SpokenLanguagesItem
 import com.fredericho.movies.core.movie.api.model.VideoMovie
+import com.fredericho.movies.core.movie.implementation.remote.response.AuthorDetailResponse
 import com.fredericho.movies.core.movie.implementation.remote.response.BelongsToCollectionResponse
 import com.fredericho.movies.core.movie.implementation.remote.response.CastResponse
 import com.fredericho.movies.core.movie.implementation.remote.response.CreditResponse
@@ -20,29 +23,12 @@ import com.fredericho.movies.core.movie.implementation.remote.response.GenreItem
 import com.fredericho.movies.core.movie.implementation.remote.response.MovieResponse
 import com.fredericho.movies.core.movie.implementation.remote.response.ProductionCompaniesResponse
 import com.fredericho.movies.core.movie.implementation.remote.response.ProductionCountriesResponse
+import com.fredericho.movies.core.movie.implementation.remote.response.ReviewResponse
 import com.fredericho.movies.core.movie.implementation.remote.response.SpokenLanguagesResponse
 import com.fredericho.movies.core.movie.implementation.remote.response.VideoItemResponse
 
 internal fun MovieResponse.toMovie(): Movie =
     Movie(
-        overview,
-        originalLanguage,
-        originalTitle,
-        video,
-        title,
-        genreIds,
-        posterPath,
-        backdropPath,
-        releaseDate,
-        popularity,
-        voteAverage,
-        id,
-        adult,
-        voteCount
-    )
-
-internal fun Movie.toMovieResponse(): MovieResponse =
-    MovieResponse(
         overview,
         originalLanguage,
         originalTitle,
@@ -119,14 +105,51 @@ internal fun VideoItemResponse.toVideoMovie(): VideoMovie = VideoMovie(
     key
 )
 
-internal fun CrewResponse.toCrew() : Crew =
-    Crew(gender, creditId, knownForDepartment, originalName, popularity, name, profilePath, id, adult)
+internal fun CrewResponse.toCrew(): Crew =
+    Crew(
+        gender,
+        creditId,
+        knownForDepartment,
+        originalName,
+        popularity,
+        name,
+        profilePath,
+        id,
+        adult
+    )
 
-internal fun CastResponse.toCast() : Cast =
-    Cast(castId, character, gender, creditId, knownForDepartment, originalName, popularity, name, profilePath, id, adult, order)
+internal fun CastResponse.toCast(): Cast =
+    Cast(
+        castId,
+        character,
+        gender,
+        creditId,
+        knownForDepartment,
+        originalName,
+        popularity,
+        name,
+        profilePath,
+        id,
+        adult,
+        order
+    )
 
-internal fun CreditResponse.toCredit() : Credit =
+internal fun CreditResponse.toCredit(): Credit =
     Credit(
         cast = cast.map { it.toCast() },
         crew = crew.map { it.toCrew() },
+    )
+
+internal fun AuthorDetailResponse.toAuthor(): Author =
+    Author(avatarPath, name, rating, username)
+
+internal fun ReviewResponse.toReview(): Review =
+    Review(
+        authorDetails?.toAuthor(),
+        updatedAt,
+        author,
+        createdAt,
+        id,
+        content,
+        url
     )

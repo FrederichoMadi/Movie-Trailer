@@ -4,10 +4,12 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import com.fredericho.movies.core.movie.api.model.Credit
 import com.fredericho.movies.core.movie.api.model.DetailMovie
+import com.fredericho.movies.core.movie.api.model.Review
 import com.fredericho.movies.core.movie.api.model.VideoMovie
 import com.fredericho.movies.core.movie.api.repository.MovieRepository
 import com.fredericho.movies.core.movie.implementation.mapper.toCredit
 import com.fredericho.movies.core.movie.implementation.mapper.toDetailMovie
+import com.fredericho.movies.core.movie.implementation.mapper.toReview
 import com.fredericho.movies.core.movie.implementation.mapper.toVideoMovie
 import com.fredericho.movies.core.movie.implementation.paging.MoviePagingSource
 import com.fredericho.movies.core.movie.implementation.remote.api.MovieApi
@@ -63,6 +65,18 @@ class MovieRepositoryImpl(
             is ApiResult.Success -> {
                 val credit = apiResult.data.toCredit()
                 BaseResponse.Success(credit)
+            }
+            is ApiResult.Error -> {
+                BaseResponse.Error("Failed to get data")
+            }
+        }
+    }
+
+    override suspend fun getReviewMovie(movieId: Int): BaseResponse<List<Review>> = withContext(ioDispatcher) {
+        when(val apiResult = movieApi.getReviewMovie(movieId = movieId).result()) {
+            is ApiResult.Success -> {
+                val review = apiResult.data.results.map { it.toReview() }
+                BaseResponse.Success(review)
             }
             is ApiResult.Error -> {
                 BaseResponse.Error("Failed to get data")

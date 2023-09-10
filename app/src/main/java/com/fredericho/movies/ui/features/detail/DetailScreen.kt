@@ -16,13 +16,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
@@ -70,6 +72,7 @@ fun DetailScreen(
         viewModel.getDetailMovie(id)
         viewModel.getCreditMovie(id)
         viewModel.getVideoMovie(id)
+        viewModel.getReviewMovie(id)
     }
 
     val state by viewModel.detailState.collectAsState()
@@ -80,6 +83,9 @@ fun DetailScreen(
 
     val videoState by viewModel.videoState.collectAsState()
     val video = videoState.videos
+
+    val reviewState by viewModel.reviewState.collectAsState()
+    val review = reviewState.reviews
 
     val context = LocalContext.current
 
@@ -92,71 +98,160 @@ fun DetailScreen(
                 modifier = Modifier.align(Alignment.Center)
             )
         }
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .background(Navy)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.3f)
-        ) {
-            if (video.isNotEmpty()) {
-                AndroidView(factory = {
-                    YouTubePlayerView(context).apply {
-                        this.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
-                            override fun onReady(youTubePlayer: YouTubePlayer) {
-                                super.onReady(youTubePlayer)
-                                youTubePlayer.cueVideo(video.first().key, 0F)
-                            }
-                        })
-
-                    }
-                },
-                    modifier = Modifier.fillMaxHeight(0.3f))
-            }
-            IconButton(
+    } else {
+        Box(modifier = Modifier) {
+            LazyColumn(
                 modifier = Modifier
-                    .align(Alignment.TopStart),
-                onClick = { navigateToBack() }) {
-                Icon(
-                    Icons.Default.ArrowBack,
-                    contentDescription = null,
-                    tint = Color.White,
-                )
+                    .fillMaxSize()
+                    .background(Navy)
+            ) {
+                item {
+                    Column(modifier = Modifier) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(0.3f)
+                        ) {
+                            if (video.isNotEmpty()) {
+                                AndroidView(
+                                    factory = {
+                                        YouTubePlayerView(context).apply {
+                                            this.addYouTubePlayerListener(object :
+                                                AbstractYouTubePlayerListener() {
+                                                override fun onReady(youTubePlayer: YouTubePlayer) {
+                                                    super.onReady(youTubePlayer)
+                                                    youTubePlayer.cueVideo(video.first().key, 0F)
+                                                }
+                                            })
+
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxHeight(0.3f)
+                                )
+                            }
+                            IconButton(
+                                modifier = Modifier
+                                    .align(Alignment.TopStart),
+                                onClick = { navigateToBack() }) {
+                                Icon(
+                                    Icons.Default.ArrowBack,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.padding(top = 24.dp))
+                    HeaderTitle(movie.originalTitle, movie.runtime, movie.voteAverage)
+                    Divider(
+                        modifier = Modifier
+                            .padding(16.dp)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.Top,
+                    ) {
+                        ReleaseDateSection(date = movie.releaseDate.toString())
+                        Spacer(modifier = Modifier.padding(end = 8.dp))
+                        GenreSection(genre = movie.genres)
+                    }
+                    Divider(
+                        modifier = Modifier
+                            .padding(16.dp)
+                    )
+                    DescriptionSection(movie.overview)
+                    Divider(
+                        modifier = Modifier
+                            .padding(16.dp)
+                    )
+                    CastSection(credit.cast)
+                    Spacer(modifier = Modifier.padding(bottom = 24.dp))
+                    Divider(
+                        modifier = Modifier
+                            .padding(16.dp)
+                    )
+                    Text(
+                        text = "Reviews",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 4.dp),
+                        color = Color.White,
+                    )
+
+                }
+
+                if (reviewState.reviews.isNotEmpty()) {
+                    items(
+                        items = review,
+                        key = { review -> review.id ?: 0 }
+                    ) { review ->
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color.Gray.copy(alpha = 0.2f)
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .padding(bottom = 8.dp)
+                        ) {
+                            Row {
+                                AsyncImage(
+                                    model = "$IMAGE_URL${review.authorDetails?.avatarPath}",
+                                    contentDescription = null,
+                                    placeholder = painterResource(id = R.drawable.outline_broken_image_24),
+                                    contentScale = ContentScale.Crop,
+                                    error = painterResource(id = R.drawable.outline_account_circle_24),
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .size(60.dp)
+                                        .padding(4.dp)
+                                )
+                                Column(
+                                    modifier = Modifier
+                                        .padding(start = 4.dp)
+                                        .fillMaxWidth(0.8f)
+                                ) {
+                                    Text(
+                                        text = review.authorDetails?.username.toString(),
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSize = 14.sp,
+                                        color = Color.White.copy(alpha = 0.5f),
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                    Text(
+                                        text = review.content.toString(),
+                                        fontSize = 14.sp,
+                                        color = Color.White,
+                                        modifier = Modifier.padding(bottom = 4.dp)
+                                    )
+
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    item {
+                        Text(
+                            text = "Review is empty",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            color = Color.White,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+                item {
+                    Spacer(modifier = Modifier.padding(bottom = 24.dp))
+                }
+
             }
         }
-        Spacer(modifier = Modifier.padding(top = 24.dp))
-        HeaderTitle(movie.originalTitle, movie.runtime, movie.voteAverage)
-        Divider(
-            modifier = Modifier
-                .padding(16.dp)
-        )
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            ReleaseDateSection(date = movie.releaseDate.toString())
-            Spacer(modifier = Modifier.padding(end = 8.dp))
-            GenreSection(genre = movie.genres)
-        }
-        Divider(
-            modifier = Modifier
-                .padding(16.dp)
-        )
-        DescriptionSection(movie.overview)
-        Divider(
-            modifier = Modifier
-                .padding(16.dp)
-        )
-        CastSection(credit.cast)
-        Spacer(modifier = Modifier.padding(bottom = 24.dp))
-
     }
+
 }
 
 @Composable
