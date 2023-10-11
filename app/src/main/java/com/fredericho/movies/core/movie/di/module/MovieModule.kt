@@ -1,6 +1,7 @@
 package com.fredericho.movies.core.movie.di.module
 
 import com.fredericho.movies.core.movie.api.repository.MovieRepository
+import com.fredericho.movies.core.movie.implementation.database.dao.MovieDao
 import com.fredericho.movies.core.movie.implementation.remote.api.MovieApi
 import com.fredericho.movies.core.movie.implementation.repository.MovieRepositoryImpl
 import com.fredericho.movies.util.IoDispatcher
@@ -24,10 +25,12 @@ object MovieModule {
     @Provides
     fun provideMovieRepository(
         movieApi: MovieApi,
+        movieDao: MovieDao,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
     ): MovieRepository {
         return MovieRepositoryImpl(
             movieApi,
+            movieDao,
             ioDispatcher,
         )
     }

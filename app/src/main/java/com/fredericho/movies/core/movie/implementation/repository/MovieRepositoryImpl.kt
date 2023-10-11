@@ -2,11 +2,15 @@ package com.fredericho.movies.core.movie.implementation.repository
 
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.fredericho.movies.core.movie.api.model.Credit
 import com.fredericho.movies.core.movie.api.model.DetailMovie
+import com.fredericho.movies.core.movie.api.model.Movie
 import com.fredericho.movies.core.movie.api.model.Review
 import com.fredericho.movies.core.movie.api.model.VideoMovie
 import com.fredericho.movies.core.movie.api.repository.MovieRepository
+import com.fredericho.movies.core.movie.implementation.database.dao.MovieDao
+import com.fredericho.movies.core.movie.implementation.database.entity.MovieEntity
 import com.fredericho.movies.core.movie.implementation.mapper.toCredit
 import com.fredericho.movies.core.movie.implementation.mapper.toDetailMovie
 import com.fredericho.movies.core.movie.implementation.mapper.toReview
@@ -18,19 +22,22 @@ import com.fredericho.movies.util.BaseResponse
 import com.fredericho.movies.util.TOKEN
 import com.fredericho.movies.util.result
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 class MovieRepositoryImpl(
     private val movieApi: MovieApi,
+    private val movieDao: MovieDao,
     private val ioDispatcher: CoroutineDispatcher
 ) : MovieRepository {
-    override fun getMoviePlayingNow() =
+    override fun getMoviePopular(): Flow<PagingData<Movie>> =
         Pager(
             config = PagingConfig(pageSize = 10),
             pagingSourceFactory = {
                 MoviePagingSource(movieApi)
             }
         ).flow
+
 
     override suspend fun getDetailMovie(movieId: Int): BaseResponse<DetailMovie> =
         withContext(ioDispatcher) {
@@ -82,5 +89,17 @@ class MovieRepositoryImpl(
                 BaseResponse.Error("Failed to get data")
             }
         }
+    }
+
+    override suspend fun getMovies(): List<MovieEntity> = withContext(ioDispatcher) {
+        movieDao.getMovies()
+    }
+
+    override suspend fun insertFavoriteMovie(movie : MovieEntity) = withContext(ioDispatcher) {
+        movieDao.insertFavoriteMovie(movie)
+    }
+
+    override suspend fun deleteFavoriteMovie(id: Int) = withContext(ioDispatcher) {
+        movieDao.removeFavorite(id)
     }
 }

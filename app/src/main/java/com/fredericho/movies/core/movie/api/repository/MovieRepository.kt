@@ -6,13 +6,13 @@ import com.fredericho.movies.core.movie.api.model.DetailMovie
 import com.fredericho.movies.core.movie.api.model.Movie
 import com.fredericho.movies.core.movie.api.model.Review
 import com.fredericho.movies.core.movie.api.model.VideoMovie
+import com.fredericho.movies.core.movie.implementation.database.entity.MovieEntity
 import com.fredericho.movies.util.BaseResponse
 import kotlinx.coroutines.flow.Flow
 
 interface MovieRepository {
 
-    fun getMoviePlayingNow(
-    ) : Flow<PagingData<Movie>>
+    fun getMoviePopular() : Flow<PagingData<Movie>>
 
     suspend fun getDetailMovie(
         movieId : Int,
@@ -29,5 +29,10 @@ interface MovieRepository {
     suspend fun getReviewMovie(
         movieId: Int
     ) : BaseResponse<List<Review>>
+
+    suspend fun getMovies() : List<MovieEntity>
+    suspend fun insertFavoriteMovie(movie : MovieEntity)
+
+    suspend fun deleteFavoriteMovie(id : Int)
 
 }

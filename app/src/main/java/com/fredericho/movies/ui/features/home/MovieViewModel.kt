@@ -8,6 +8,7 @@ import com.fredericho.movies.core.genres.api.model.Genre
 import com.fredericho.movies.core.genres.api.repository.GenreRepository
 import com.fredericho.movies.core.movie.api.model.Movie
 import com.fredericho.movies.core.movie.api.repository.MovieRepository
+import com.fredericho.movies.core.movie.implementation.database.entity.MovieEntity
 import com.fredericho.movies.util.BaseResponse
 import com.fredericho.movies.util.TOKEN
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,6 +32,9 @@ class MovieViewModel @Inject constructor(
     private val _genreState = MutableStateFlow(GenreUiState())
     val genreState = _genreState.asStateFlow()
 
+    private val _movieLocalState = MutableStateFlow(MovieLocalState())
+    val movieLocalState = _movieLocalState.asStateFlow()
+
     fun getMovies() = viewModelScope.launch {
         _movieState.update {
             it.copy(
@@ -38,7 +42,7 @@ class MovieViewModel @Inject constructor(
             )
         }
 
-        val movies = movieRepository.getMoviePlayingNow().cachedIn(viewModelScope)
+        val movies = movieRepository.getMoviePopular().cachedIn(viewModelScope)
 
         _movieState.update {
             it.copy(
@@ -102,7 +106,45 @@ class MovieViewModel @Inject constructor(
             it.copy(filterMovies = filterMovies)
         }
     }
+
+    fun getLocalMovies() {
+        _movieLocalState.update {
+            it.copy(loading = true)
+        }
+        viewModelScope.launch {
+
+            val movies = movieRepository.getMovies()
+
+            if (movies.isEmpty()) {
+                _movieLocalState.update {
+                    it.copy(messageError = "Favorite movie is empty")
+                }
+            } else {
+                _movieLocalState.update {
+                    it.copy(movies = movies)
+                }
+            }
+        }
+    }
+
+    fun insertMovie(movie: MovieEntity) {
+        viewModelScope.launch {
+            movieRepository.insertFavoriteMovie(movie = movie)
+        }
+    }
+
+    fun deleteMovie(id: Int) {
+        viewModelScope.launch {
+            movieRepository.deleteFavoriteMovie(id)
+        }
+    }
 }
+
+data class MovieLocalState(
+    val movies: List<MovieEntity> = emptyList(),
+    val loading: Boolean = true,
+    val messageError: String = "",
+)
 
 data class MovieUiState(
     val flowMovies: Flow<PagingData<Movie>> = emptyFlow(),

@@ -14,9 +14,8 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface MovieApi {
-
-    @GET("movie/now_playing")
-    suspend fun getMovieNowPlaying(
+    @GET("movie/popular")
+    suspend fun getMoviePopular(
         @Header("Authorization") token : String,
         @Query("page") page : Int = 1,
     ) : Response<BaseMovieResponse<List<MovieResponse>>>

@@ -20,7 +20,7 @@ class MoviePagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Movie> {
         return try {
             val page = params.key ?: 1
-            val response = movieApi.getMovieNowPlaying(TOKEN, page)
+            val response = movieApi.getMoviePopular(TOKEN, page)
 
             LoadResult.Page(
                 data = response.body()?.results!!.map { it.toMovie() },

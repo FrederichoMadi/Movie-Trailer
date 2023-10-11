@@ -13,6 +13,7 @@ import com.fredericho.movies.core.movie.api.model.ProductionCountriesItem
 import com.fredericho.movies.core.movie.api.model.Review
 import com.fredericho.movies.core.movie.api.model.SpokenLanguagesItem
 import com.fredericho.movies.core.movie.api.model.VideoMovie
+import com.fredericho.movies.core.movie.implementation.database.entity.MovieEntity
 import com.fredericho.movies.core.movie.implementation.remote.response.AuthorDetailResponse
 import com.fredericho.movies.core.movie.implementation.remote.response.BelongsToCollectionResponse
 import com.fredericho.movies.core.movie.implementation.remote.response.CastResponse
@@ -35,6 +36,23 @@ internal fun MovieResponse.toMovie(): Movie =
         video,
         title,
         genreIds,
+        posterPath,
+        backdropPath,
+        releaseDate,
+        popularity,
+        voteAverage,
+        id,
+        adult,
+        voteCount
+    )
+
+internal fun Movie.toMovieEntity() : MovieEntity =
+    MovieEntity(
+        overview,
+        originalLanguage,
+        originalTitle,
+        video,
+        title,
         posterPath,
         backdropPath,
         releaseDate,

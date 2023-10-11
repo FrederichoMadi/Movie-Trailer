@@ -1,5 +1,7 @@
 package com.fredericho.movies.ui.features.home
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,11 +27,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import com.fredericho.movies.core.movie.implementation.mapper.toMovieEntity
 import com.fredericho.movies.ui.features.home.components.MovieItem
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,14 +41,17 @@ import com.fredericho.movies.ui.features.home.components.MovieItem
 fun MovieScreen(
     viewModel: MovieViewModel = hiltViewModel(),
     navigationDetail: (Int) -> Unit,
+    context : Context = LocalContext.current
 ) {
     val movieState by viewModel.movieState.collectAsState()
     val genreState by viewModel.genreState.collectAsState()
+    val movieLocalState by viewModel.movieLocalState.collectAsState()
     val movies = movieState.flowMovies.collectAsLazyPagingItems()
     var selectedFilter by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
         viewModel.getMovies()
+        viewModel.getLocalMovies()
     }
 
     LaunchedEffect(Unit) {
@@ -117,9 +124,26 @@ fun MovieScreen(
                         key = movies.itemKey { it.id },
                     ) { index ->
                         val movie = movies[index]
+                        val detailMovie = movieLocalState.movies.find { it.id == movie?.id }
                         MovieItem(
                             image = movie?.posterPath.toString(),
-                            title = movie?.title.toString()
+                            title = movie?.title.toString(),
+                            isFavorite = detailMovie?.id == movie?.id,
+                            insertFavoriteMovie = {
+                                if (movie != null) {
+                                    if(detailMovie?.id == movie.id) {
+                                        viewModel.deleteMovie(movie.id)
+                                        Toast.makeText(context, "Delete movie from Favorite", Toast.LENGTH_SHORT).show()
+
+                                        viewModel.getLocalMovies()
+                                    } else {
+                                        viewModel.insertMovie(movie.toMovieEntity())
+                                        Toast.makeText(context, "Add movie to Favorite", Toast.LENGTH_SHORT).show()
+
+                                        viewModel.getLocalMovies()
+                                    }
+                                }
+                            }
                         ) {
                             navigationDetail(movie?.id!!)
                         }
@@ -167,10 +191,25 @@ fun MovieScreen(
                         items = movieState.filterMovies,
                         key = { movie -> movie.id }
                     ) { movie ->
+                        val detailMovie = movieLocalState.movies.find { it.id == movie.id }
                         MovieItem(
                             image = movie.posterPath,
                             title = movie.originalTitle,
+                            isFavorite = detailMovie?.id == movie.id,
                             navigationToDetail = { navigationDetail(movie.id) },
+                            insertFavoriteMovie = {
+                                if(detailMovie?.id == movie.id) {
+                                    viewModel.deleteMovie(movie.id)
+                                    Toast.makeText(context, "Delete movie from Favorite", Toast.LENGTH_SHORT).show()
+
+                                    viewModel.getLocalMovies()
+                                } else {
+                                    viewModel.insertMovie(movie.toMovieEntity())
+                                    Toast.makeText(context, "Add movie to Favorite", Toast.LENGTH_SHORT).show()
+
+                                    viewModel.getLocalMovies()
+                                }
+                            },
                         )
                     }
                 }
